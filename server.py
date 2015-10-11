@@ -38,6 +38,25 @@ class ClassInfoHandler(tornado.web.RequestHandler):
         fileobj = open(filename, "w")
         fileobj.write(json.dumps(data))
 
+class ClassListHandler(tornado.web.RequestHandler):
+    def get(self):
+        list = []
+        url = []
+        for root,dirs,files in os.walk("classinfo/"):
+            for name in files:
+                list.append(name.decode('GBK'))
+                url.append("classdetail/"+name.decode('GBK'))
+        self.render("allclass.html",info=list,classurl=url)
+
+class ClassDetailHandler(tornado.web.RequestHandler):
+    def get(self,input):
+        filename = "classinfo/"+input
+        fileobj = open(filename, "r")
+        content = fileobj.read()
+        classinfo = json.loads(content)
+        time = classinfo[0]['time']
+        name = classinfo[0]['student']
+        self.render("classinfo.html", info=classinfo)
 
 class Application(tornado.web.Application):
     def __init__(self):
@@ -47,6 +66,8 @@ class Application(tornado.web.Application):
         handlers = [(r"/", MainHandler),
                     (r"/content(\w+)", ContentHandler),
                     (r"/classinfo", ClassInfoHandler),
+                    (r"/classlist", ClassListHandler),
+                    (r"/classdetail", ClassDetailHandler),
                     (r'/fonts/(.*)', tornado.web.StaticFileHandler, {'path': fontpath}),
                     (r'/js/(.*)', tornado.web.StaticFileHandler, {'path': jspath}),
                     (r'/css/(.*)', tornado.web.StaticFileHandler, {'path': csspath})]
